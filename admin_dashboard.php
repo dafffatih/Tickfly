@@ -24,6 +24,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
+
 // Mock data for the dashboard
 $stats = [
     [
