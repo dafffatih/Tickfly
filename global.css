@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: #f5f7fa;
+}
+
+.tickfly-blue {
+  color: #1e3a8a;
+}
+
+.tickfly-blue-bg {
+  background-color: #1e3a8a;
+}
+
+.tickfly-light-blue {
+  color: #60a5fa;
+}
+
+.tickfly-light-blue-bg {
+  background-color: #60a5fa;
+}
