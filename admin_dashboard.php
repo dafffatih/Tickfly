@@ -276,7 +276,7 @@ function getIconSvg($icon) {
             </nav>
 
             <div class="absolute bottom-0 w-full p-4">
-                <a href="logout.php" class="flex items-center w-full px-4 py-3 text-blue-100 rounded-md hover:bg-blue-800 hover:text-white transition-colors">
+                <a href="login.php" class="flex items-center w-full px-4 py-3 text-blue-100 rounded-md hover:bg-blue-800 hover:text-white transition-colors">
                     <?php echo getIconSvg('logout'); ?>
                     <span class="ml-3">Logout</span>
                 </a>
