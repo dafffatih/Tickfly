@@ -39,22 +39,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->rowCount() > 0) {
                 $error_message = "Email already exists";
             } else {
-                // Hash password
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                
-                // Insert new user
-                $stmt = $conn->prepare("INSERT INTO users (username, email, phone, password, remember_me) VALUES (:username, :email, :phone, :password, :remember_me)");
-                $stmt->bindParam(':username', $username);
-                $stmt->bindParam(':email', $email);
-                $stmt->bindParam(':phone', $phone);
-                $stmt->bindParam(':password', $hashed_password);
-                $stmt->bindParam(':remember_me', $remember_me);
-                $stmt->execute();
-                
-                $success_message = "Registration successful! You can now login.";
-                
-                // Redirect to login page after 2 seconds
-                header("refresh:2;url=login.php");
+                if (!is_numeric($phone)) {
+                    $error_message = "Phone number is not valid";
+                } else {
+                    // Hash password
+                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                    
+                    // Insert new user
+                    $stmt = $conn->prepare("INSERT INTO users (username, email, phone, password, remember_me) VALUES (:username, :email, :phone, :password, :remember_me)");
+                    $stmt->bindParam(':username', $username);
+                    $stmt->bindParam(':email', $email);
+                    $stmt->bindParam(':phone', $phone);
+                    $stmt->bindParam(':password', $hashed_password);
+                    $stmt->bindParam(':remember_me', $remember_me);
+                    $stmt->execute();
+                    
+                    $success_message = "Registration successful! You can now login.";
+                    
+                    // Redirect to login page after 2 seconds
+                    header("refresh:2;url=login.php");
+                }
             }
         }
     } catch(PDOException $e) {

@@ -108,7 +108,8 @@ $passengerInfo = [
     'phone' => isset($_POST['phone']) ? $_POST['phone'] : '',
 ];
 
-$selectedSeat = isset($_POST['selectedSeat']) ? $_POST['selectedSeat'] : '';
+// $selectedSeat = isset($_POST['selectedSeat']) ? $_POST['selectedSeat'] : '';
+$selectedSeats = isset($_POST['selectedSeat']) ? (array)$_POST['selectedSeat'] : [];
 
 $additionalServices = [
     'meals' => isset($_POST['meals']) && $_POST['meals'] === 'on',
@@ -143,8 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
         $errors[] = "Phone number is required";
     }
     
-    if (empty($selectedSeat)) {
-        $errors[] = "Please select a seat";
+    if (count($selectedSeats) < intval($travelers)) {
+        $errors[] = "Please select " . intval($travelers) . " seat(s)";
     }
     
     // If no errors, proceed to payment page
@@ -428,7 +429,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
                             <h2 class="text-lg font-medium">FLIGHT SEAT PLAN</h2>
                             <div id="seatStatus">
                                 <?php if ($selectedSeat): ?>
-                                <span class="text-green-600">Selected Seat: <strong><?php echo $selectedSeat; ?></strong></span>
+                                <span class="text-green-600">Selected Seat: <strong><?php 
+                                foreach ($selectedSeat as $i) {
+                                    echo "{$i},FDS";
+                                }
+                                ?></strong></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -454,23 +459,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
                                 <?php endforeach; ?>
                             </div>
                             
-                            <input type="hidden" id="selectedSeat" name="selectedSeat" value="<?php echo htmlspecialchars($selectedSeat); ?>">
+                            <!-- <input type="hidden" id="selectedSeat" name="selectedSeat" value="<?php echo htmlspecialchars($selectedSeat); ?>"> -->
+                             <?php foreach ($selectedSeats as $seat): ?>
+                                <input type="hidden" name="selectedSeat[]" value="<?php echo htmlspecialchars($seat); ?>">
+                            <?php endforeach; ?>
 
                             <div class="flex justify-center gap-8">
                                 <div class="flex items-center">
                                     <div class="w-4 h-4 bg-gray-800 rounded-sm mr-2"></div>
-                                    <span class="text-sm">Booked (12)</span>
+                                    <span class="text-sm">Booked</span>
                                 </div>
 
                                 <div class="flex items-center">
                                     <div class="w-4 h-4 bg-blue-100 rounded-sm mr-2"></div>
-                                    <span class="text-sm">Available (48)</span>
+                                    <span class="text-sm">Available</span>
                                 </div>
 
-                                <?php if ($selectedSeat): ?>
                                 <div class="flex items-center">
                                     <div class="w-4 h-4 bg-blue-800 rounded-sm mr-2"></div>
-                                    <span class="text-sm">Your Seat (<?php echo $selectedSeat; ?>)</span>
+                                    <span class="text-sm">Choosed</span>
+                                </div>
+
+                                <?php if (!empty($selectedSeats)): ?>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-800 rounded-sm mr-2"></div>
+                                    <span class="text-sm">Your Seats (<?php echo implode(', ', $selectedSeats); ?>)</span>
                                 </div>
                                 <?php endif; ?>
                             </div>
@@ -583,31 +596,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
 document.addEventListener('DOMContentLoaded', function() {
     // Seat selection functionality
     const seatButtons = document.querySelectorAll('.seat-btn');
-    const selectedSeatInput = document.getElementById('selectedSeat');
     const seatStatusDiv = document.getElementById('seatStatus');
+    const travelers = <?php echo intval($travelers); ?>;
+    
+    // Initialize selected seats from PHP
+    let selectedSeats = <?php echo json_encode($selectedSeats); ?>;
+    
+    function updateSelectedSeatsDisplay() {
+        if (selectedSeats.length > 0) {
+            seatStatusDiv.innerHTML = '<span class="text-green-600">Selected Seats: <strong>' + 
+                selectedSeats.join(', ') + '</strong></span>';
+        } else {
+            seatStatusDiv.innerHTML = '';
+        }
+    }
+    
+    function updateHiddenInputs() {
+        // Remove all existing hidden inputs
+        document.querySelectorAll('input[name="selectedSeat[]"]').forEach(el => el.remove());
+        
+        // Add new hidden inputs for each selected seat
+        selectedSeats.forEach(seat => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selectedSeat[]';
+            input.value = seat;
+            document.querySelector('form').appendChild(input);
+        });
+    }
+    
+    // Initialize display
+    updateSelectedSeatsDisplay();
+    updateHiddenInputs();
     
     seatButtons.forEach(button => {
         if (!button.disabled) {
             button.addEventListener('click', function() {
-                // Remove selected class from all buttons
-                seatButtons.forEach(btn => {
-                    if (!btn.disabled) {
-                        btn.classList.remove('bg-blue-800', 'text-white');
-                        btn.classList.add('bg-blue-100', 'text-blue-800', 'hover:bg-blue-200');
-                    }
-                });
-                
-                // Add selected class to clicked button
-                this.classList.remove('bg-blue-100', 'text-blue-800', 'hover:bg-blue-200');
-                this.classList.add('bg-blue-800', 'text-white');
-                
-                // Update hidden input and status display
                 const seatId = this.getAttribute('data-seat-id');
-                selectedSeatInput.value = seatId;
                 
-                // Update seat status display
-                seatStatusDiv.innerHTML = '<span class="text-green-600">Selected Seat: <strong>' + seatId + '</strong></span>';
+                // Check if seat is already selected
+                const seatIndex = selectedSeats.indexOf(seatId);
+                
+                if (seatIndex > -1) {
+                    // Seat is already selected - deselect it
+                    selectedSeats.splice(seatIndex, 1);
+                    this.classList.remove('bg-blue-800', 'text-white');
+                    this.classList.add('bg-blue-100', 'text-blue-800', 'hover:bg-blue-200');
+                } else {
+                    // Check if we can select more seats
+                    if (selectedSeats.length < travelers) {
+                        // Select new seat
+                        selectedSeats.push(seatId);
+                        this.classList.remove('bg-blue-100', 'text-blue-800', 'hover:bg-blue-200');
+                        this.classList.add('bg-blue-800', 'text-white');
+                    } else {
+                        // Show error that maximum seats reached
+                        return;
+                    }
+                }
+                
+                // Update display and hidden inputs
+                updateSelectedSeatsDisplay();
+                updateHiddenInputs();
             });
+            
+            // Set initial state of buttons
+            if (selectedSeats.includes(button.getAttribute('data-seat-id'))) {
+                button.classList.remove('bg-blue-100', 'text-blue-800', 'hover:bg-blue-200');
+                button.classList.add('bg-blue-800', 'text-white');
+            }
         }
     });
     

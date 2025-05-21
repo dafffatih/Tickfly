@@ -25,9 +25,9 @@ function getFlightById($flight_id) {
     // In a real application, this would fetch from a database
     // For now, we'll use mock data based on the flight ID
     $airlines = [
-        ['id' => 1, 'name' => 'Garuda Indonesia', 'logo' => 'placeholder.svg'],
-        ['id' => 2, 'name' => 'Lion Air', 'logo' => 'placeholder.svg'],
-        ['id' => 3, 'name' => 'Sriwijaya Air', 'logo' => 'placeholder.svg']
+        ['id' => 1, 'name' => 'Garuda Indonesia', 'logo' => 'logo_maskapai/garuda_indonesia.png'],
+        ['id' => 2, 'name' => 'Lion Air', 'logo' => 'logo_maskapai/lion_air.png'],
+        ['id' => 3, 'name' => 'Sriwijaya Air', 'logo' => 'logo_maskapai/sriwijaya_air.png']
     ];
     
     $cabinClasses = ['ClassCP', 'ClassH', 'ClassL', 'ClassBC'];
@@ -170,10 +170,16 @@ $totalPrice = $flight ? $flight['price'] : 0;
                 <div class="flex items-center mb-4 md:mb-0">
                     <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mr-4">
                         <!-- Airplane Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6l8 3-8 3-8-3 8-3z" />
-                        </svg>
+                        </svg> -->
+                        <img 
+                            src="<?php echo $flight['airline']['logo']; ?>" 
+                            alt="<?php echo $flight['airline']['name']; ?>"
+                            class="w-full h-full object-contain"
+                            onerror="this.src='placeholder.svg'"
+                        />
                     </div>
                     <div>
                         <h2 class="text-xl font-bold"><?php echo $flight['airline']['name']; ?></h2>

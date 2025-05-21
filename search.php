@@ -36,9 +36,9 @@ $stops = isset($_GET['stops']) ? $_GET['stops'] : 'all';
 // Mock flight data generator function
 function generateMockFlights($from, $to, $date) {
     $airlines = [
-        ['id' => 1, 'name' => 'Garuda Indonesia', 'logo' => 'placeholder.svg'],
-        ['id' => 2, 'name' => 'Lion Air', 'logo' => 'placeholder.svg'],
-        ['id' => 3, 'name' => 'Sriwijaya Air', 'logo' => 'placeholder.svg']
+        ['id' => 1, 'name' => 'Garuda Indonesia', 'logo' => 'logo_maskapai/garuda_indonesia.png'],
+        ['id' => 2, 'name' => 'Lion Air', 'logo' => 'logo_maskapai/lion_air.png'],
+        ['id' => 3, 'name' => 'Sriwijaya Air', 'logo' => 'logo_maskapai/sriwijaya_air.png']
     ];
 
     $cabinClasses = ['ClassCP', 'ClassH', 'ClassL', 'ClassBC'];
@@ -444,8 +444,7 @@ function formatDuration($minutes) {
                                                 <img 
                                                     src="<?php echo $flight['airline']['logo']; ?>" 
                                                     alt="<?php echo $flight['airline']['name']; ?>"
-                                                    width="32"
-                                                    height="32"
+                                                    class="w-full h-full object-contain"
                                                     onerror="this.src='placeholder.svg'"
                                                 />
                                             </div>
