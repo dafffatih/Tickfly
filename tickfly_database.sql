@@ -40,7 +40,7 @@ VALUES ('cs', 'cs@tickfly.com', '123457', '$2y$10$l.JXHffhsNXs/JLPyFm9d.UlHUH9kb
 CREATE TABLE ticket (
     id INT PRIMARY KEY AUTO_INCREMENT,
     booking_code VARCHAR(100),
-    user_id INT,
+    username VARCHAR(100),
     email VARCHAR(50),
     phone BIGINT,
     flight VARCHAR(100),
@@ -50,13 +50,13 @@ CREATE TABLE ticket (
     origin VARCHAR(100),
     destination VARCHAR(100),
     passenger_title VARCHAR(100),
-    passenger_name VARCHAR(100),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     travelers INT,
     seat VARCHAR(100),
     price BIGINT,
-    flight_status VARCHAR(100),
     meals TINYINT(1),
     baggage TINYINT(1),
     refundable TINYINT(1),      
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (username) REFERENCES users(username)
 );

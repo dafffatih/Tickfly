@@ -1,6 +1,7 @@
 <?php
 // Initialize session
 session_start();
+require_once 'config.php';
 
 // Check if user is logged in
 $is_logged_in = isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
@@ -20,6 +21,7 @@ if (isset($_GET['logout'])) {
 // Get parameters from URL
 $flight_id = isset($_GET['flightId']) ? $_GET['flightId'] : null;
 $selectedSeat = isset($_GET['seat']) ? $_GET['seat'] : null;
+$stringSeat = implode(",", $selectedSeat);
 $from = isset($_GET['from']) ? $_GET['from'] : 'Jakarta';
 $to = isset($_GET['to']) ? $_GET['to'] : 'Lampung';
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
@@ -79,7 +81,7 @@ function formatPriceIDR($price) {
 }
 
 // Calculate service fees
-$baseFare = $flight ? $flight['price'] : 0;
+$baseFare = $flight ? $flight['price'] * $travelers : 0;
 $fees = 100000; // Standard fees and surcharges
 $mealsCost = $meals ? 50000 : 0; // 50k if meals are selected
 $baggageCost = $baggage ? 100000 : 0; // 100k if baggage is selected
@@ -122,19 +124,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submitPayment'])) {
     // 5. Send confirmation emails
     
     // For the demo, we'll redirect to booking-confirmation.php after a delay
-    $queryParams = http_build_query([
+    $booking_number = 'TF' . sprintf('%06d', rand(100000, 999999));
+    if (!isset($conn) || $conn === null) {
+        $error_message = "Database connection failed. Please check your configuration.";
+    } else {
+        try {
+            $stmt = $conn->prepare("INSERT INTO ticket (booking_code, username, email, phone, flight, flight_date, departure_time, arrival_time, origin, destination, passenger_title, first_name, last_name, travelers, seat, price, meals, baggage, refundable) VALUES ($booking_number, $username, $email, $phone, {$flight['airline']['name']}, $date, {$flight['departureTime']}, {$flight['arrivalTime']}, $from, $to, $title, $firstName, $lastName, $travelers, $stringSeat, {$flight['price']}, $meals, $baggage, {$flight['refundable']})");
+            $stmt->execute();
+        } catch(PDOException $e) {
+            $error_message = "Error: " . $e->getMessage();
+        }
+        // $queryParams = "INSERT INTO ticket (booking_code, username, email, phone, flight, flight_date, departure_time, arrival_time, origin, destination, passenger_title, first_name, last_name, travelers, seat, price, meals, baggage, refundable)
+        // VALUES ($booking_number, $username, $email, $phone, {$flight['airline']['name']}, $date, {$flight['departureTime']}, {$flight['arrivalTime']}, $from, $to, $title, $firstName, $lastName, $travelers, $stringSeat, {$flight['price']}, $meals, $baggage, {$flight['refundable']})";
+        // $stmt = mysqli_prepare($conn, $queryParams);
+    }
+
+    // if ($stmt) {
+    //     // Konversi boolean ke integer untuk database
+    //     $meals_int = $meals ? 1 : 0;
+    //     $baggage_int = $baggage ? 1 : 0;
+    //     $refundable_int = $flight['refundable'] ? 1 : 0;
+        
+    //     mysqli_stmt_bind_param(
+    //         $stmt,
+    //         "sssssssssssssisiii",
+    //         $booking_number,
+    //         $username,
+    //         $email,
+    //         $phone,
+    //         $flight['airline']['name'],
+    //         $date,
+    //         $flight['departureTime'],
+    //         $flight['arrivalTime'],
+    //         $from,
+    //         $to,
+    //         $title,
+    //         $firstName,
+    //         $lastName,
+    //         $travelers,
+    //         $stringSeat,
+    //         $flight['price'],
+    //         $meals_int,
+    //         $baggage_int,
+    //         $refundable_int
+    //     );
+
+    //     if (mysqli_stmt_execute($stmt)) {
+    //         // Redirect setelah sukses
+    //         header("Location: booking-confirmation.php?" . http_build_query([
+    //             'bookingNumber' => $booking_number,
+    //             // parameter lainnya...
+    //         ]));
+    //         exit;
+    //     } else {
+    //         echo "<script>alert('Gagal menyimpan data: " . addslashes(mysqli_error($conn)) . "');</script>";
+    //     }
+        
+    //     mysqli_stmt_close($stmt);
+    // } else {
+    //     echo "<script>alert('Error preparing statement: " . addslashes(mysqli_error($conn)) . "');</script>";
+    // }
+
+    header("Location: booking-confirmation.php?" . http_build_query([
+        'bookingNumber' => $booking_number,
         'flightId' => $flight_id,
-        'seat' => $selectedSeat,
+        'seat' => $stringSeat,
         'from' => $from,
         'to' => $to,
         'date' => $date,
         'travelers' => $travelers,
         'class' => $cabin_class,
         'success' => 'true'
-    ]);
+    ]));
+    exit;
+    
+    // $queryParams = http_build_query([
+    //     'bookingNumber' => $booking_number,
+    //     'flightId' => $flight_id,
+    //     'seat' => $stringSeat,
+    //     'from' => $from,
+    //     'to' => $to,
+    //     'date' => $date,
+    //     'travelers' => $travelers,
+    //     'class' => $cabin_class,
+    //     'success' => 'true'
+    // ]);
+    // echo "<script>alert('bahaya ini')</script>";
+    // $flight_id = isset($_GET['flightId']) ? $_GET['flightId'] : null;
+    // $selectedSeat = isset($_GET['seat']) ? $_GET['seat'] : null;
+    // $from = isset($_GET['from']) ? $_GET['from'] : 'Jakarta';
+    // $to = isset($_GET['to']) ? $_GET['to'] : 'Lampung';
+    // $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    // $travelers = isset($_GET['travelers']) ? $_GET['travelers'] : '1';
+    // $cabin_class = isset($_GET['class']) ? $_GET['class'] : 'economy';
+    // $firstName = isset($_GET['firstName']) ? $_GET['firstName'] : '';
+    // $lastName = isset($_GET['lastName']) ? $_GET['lastName'] : '';
+    // $email = isset($_GET['email']) ? $_GET['email'] : '';
+    // $phone = isset($_GET['phone']) ? $_GET['phone'] : '';
+    // $title = isset($_GET['title']) ? $_GET['title'] : 'Mr';
+    // $meals = isset($_GET['meals']) && $_GET['meals'] === '1';
+    // $baggage = isset($_GET['baggage']) && $_GET['baggage'] === '1';
     
     // We'll use JavaScript to redirect after a "processing" delay
-    $redirect = true;
+    // $redirect = true;
 }
 ?>
 
@@ -734,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Redirect with all necessary parameters
             setTimeout(function() {
-                window.location.href = 'booking-confirmation.php?flightId=<?php echo $flight_id; ?>&seat=<?php echo $selectedSeat; ?>&from=<?php echo urlencode($from); ?>&to=<?php echo urlencode($to); ?>&date=<?php echo urlencode($date); ?>&travelers=<?php echo urlencode($travelers); ?>&class=<?php echo urlencode($cabin_class); ?>&firstName=<?php echo urlencode($firstName); ?>&lastName=<?php echo urlencode($lastName); ?>&email=<?php echo urlencode($email); ?>&phone=<?php echo urlencode($phone); ?>&title=<?php echo urlencode($title); ?>&paymentMethod=' + document.getElementById('payment-method-input').value + '&meals=<?php echo $meals ? "1" : "0"; ?>&baggage=<?php echo $baggage ? "1" : "0"; ?>&success=true';
+                window.location.href = 'booking-confirmation.php?bookingNumber=<?php echo $booking_number; ?>&flightId=<?php echo $flight_id; ?>&seat=<?php echo $selectedSeat; ?>&from=<?php echo urlencode($from); ?>&to=<?php echo urlencode($to); ?>&date=<?php echo urlencode($date); ?>&travelers=<?php echo urlencode($travelers); ?>&class=<?php echo urlencode($cabin_class); ?>&firstName=<?php echo urlencode($firstName); ?>&lastName=<?php echo urlencode($lastName); ?>&email=<?php echo urlencode($email); ?>&phone=<?php echo urlencode($phone); ?>&title=<?php echo urlencode($title); ?>&paymentMethod=' + document.getElementById('payment-method-input').value + '&meals=<?php echo $meals ? "1" : "0"; ?>&baggage=<?php echo $baggage ? "1" : "0"; ?>&success=true';
             }, 10000);
             
             e.preventDefault(); // Prevent actual form submission for this demo
@@ -744,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle the case where we have a redirection after form submission
     <?php if (isset($redirect) && $redirect): ?>
     setTimeout(function() {
-        window.location.href = 'booking-confirmation.php?flightId=<?php echo $flight_id; ?>&seat=<?php echo $selectedSeat; ?>&from=<?php echo urlencode($from); ?>&to=<?php echo urlencode($to); ?>&date=<?php echo urlencode($date); ?>&travelers=<?php echo urlencode($travelers); ?>&class=<?php echo urlencode($cabin_class); ?>&firstName=<?php echo urlencode($firstName); ?>&lastName=<?php echo urlencode($lastName); ?>&email=<?php echo urlencode($email); ?>&phone=<?php echo urlencode($phone); ?>&title=<?php echo urlencode($title); ?>&paymentMethod=<?php echo $selectedPaymentMethod; ?>&meals=<?php echo $meals ? "1" : "0"; ?>&baggage=<?php echo $baggage ? "1" : "0"; ?>&success=true';
+        window.location.href = 'booking-confirmation.php?bookingNumber=<?php echo $booking_number; ?>&flightId=<?php echo $flight_id; ?>&seat=<?php echo $selectedSeat; ?>&from=<?php echo urlencode($from); ?>&to=<?php echo urlencode($to); ?>&date=<?php echo urlencode($date); ?>&travelers=<?php echo urlencode($travelers); ?>&class=<?php echo urlencode($cabin_class); ?>&firstName=<?php echo urlencode($firstName); ?>&lastName=<?php echo urlencode($lastName); ?>&email=<?php echo urlencode($email); ?>&phone=<?php echo urlencode($phone); ?>&title=<?php echo urlencode($title); ?>&paymentMethod=<?php echo $selectedPaymentMethod; ?>&meals=<?php echo $meals ? "1" : "0"; ?>&baggage=<?php echo $baggage ? "1" : "0"; ?>&success=true';
     }, 10000);
     <?php endif; ?>
 });

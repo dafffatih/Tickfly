@@ -108,7 +108,6 @@ $passengerInfo = [
     'phone' => isset($_POST['phone']) ? $_POST['phone'] : '',
 ];
 
-// $selectedSeat = isset($_POST['selectedSeat']) ? $_POST['selectedSeat'] : '';
 $selectedSeats = isset($_POST['selectedSeat']) ? (array)$_POST['selectedSeat'] : [];
 
 $additionalServices = [
@@ -117,7 +116,7 @@ $additionalServices = [
 ];
 
 // Calculate service fees
-$baseFare = $flight ? $flight['price'] : 0;
+$baseFare = $flight ? $flight['price'] * $travelers : 0;
 $fees = 100000; // Standard fees and surcharges
 $mealsCost = $additionalServices['meals'] ? 50000 : 0; // 50k if meals are selected
 $baggageCost = $additionalServices['baggage'] ? 100000 : 0; // 100k if baggage is selected
@@ -152,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
     if (empty($errors)) {
         $queryParams = http_build_query([
             'flightId' => $flight_id,
-            'seat' => $selectedSeat,
+            'seat' => $selectedSeats, 
             'from' => $from,
             'to' => $to,
             'date' => $date,
@@ -428,9 +427,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-lg font-medium">FLIGHT SEAT PLAN</h2>
                             <div id="seatStatus">
-                                <?php if ($selectedSeat): ?>
+                                <?php if ($selectedSeats): ?>
                                 <span class="text-green-600">Selected Seat: <strong><?php 
-                                foreach ($selectedSeat as $i) {
+                                foreach ($selectedSeats as $i) {
                                     echo "{$i},FDS";
                                 }
                                 ?></strong></span>
@@ -447,7 +446,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
                                     class="seat-btn flex items-center justify-center w-10 h-10 rounded-md transition
                                     <?php if ($seat['status'] === 'booked'): ?>
                                         bg-gray-800 text-white cursor-not-allowed
-                                    <?php elseif ($selectedSeat === $seat['id']): ?>
+                                    <?php elseif ($selectedSeats === $seat['id']): ?>
                                         bg-blue-800 text-white
                                     <?php else: ?>
                                         bg-blue-100 text-blue-800 hover:bg-blue-200
@@ -459,8 +458,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['continue'])) {
                                 <?php endforeach; ?>
                             </div>
                             
-                            <!-- <input type="hidden" id="selectedSeat" name="selectedSeat" value="<?php echo htmlspecialchars($selectedSeat); ?>"> -->
-                             <?php foreach ($selectedSeats as $seat): ?>
+                            <?php foreach ($selectedSeats as $seat): ?>
                                 <input type="hidden" name="selectedSeat[]" value="<?php echo htmlspecialchars($seat); ?>">
                             <?php endforeach; ?>
 
@@ -675,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalPriceDisplay = document.querySelector('.total-price-display');
     
     // Base values
-    const baseFare = 1100000; // Base fare amount
+    const baseFare = <?php echo $flight ? $flight['price'] * $travelers : 0; ?>; // Base fare amount
     const fees = 100000;      // Fees amount
     const mealsCost = 50000;  // Cost for meals
     const baggageCost = 100000; // Cost for baggage

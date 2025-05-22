@@ -18,6 +18,7 @@ if (isset($_GET['logout'])) {
 }
 
 // Get parameters from URL
+$booking_number = isset($_GET['bookingNumber']) ? $_GET['bookingNumber'] : null;
 $flight_id = isset($_GET['flightId']) ? $_GET['flightId'] : null;
 $selectedSeat = isset($_GET['seat']) ? $_GET['seat'] : null;
 $from = isset($_GET['from']) ? $_GET['from'] : 'Jakarta';
@@ -93,9 +94,6 @@ $baggageCost = $baggage ? 100000 : 0; // 100k if baggage is selected
 
 $totalAddOns = $mealsCost + $baggageCost;
 $totalPrice = $baseFare + $fees + $totalAddOns;
-
-// Generate booking number
-$booking_number = 'TF' . sprintf('%06d', rand(100000, 999999));
 
 // Format flight duration
 $duration_hours = floor($flight['durationMinutes'] / 60);
@@ -254,7 +252,9 @@ $paymentMethodDisplay = [
 
                     <div>
                         <p class="text-gray-500 mb-1">Seat</p>
-                        <p class="font-medium"><?php echo $selectedSeat; ?></p>
+                        <p class="font-medium"><?php
+                        echo $selectedSeat;
+                        ?></p>
                     </div>
                 </div>
             </div>

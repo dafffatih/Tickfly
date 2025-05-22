@@ -35,5 +35,4 @@ try {
     $conn = null;
     $db_error = "Connection failed: " . $e->getMessage();
 }
-echo $password
 ?>
